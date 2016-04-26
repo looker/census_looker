@@ -1,0 +1,282 @@
+DataFerrett Codebook - Created 
+
+
+Dataset: CPS//Voting and Registration/Nov 1994
+Topic: Demographic Variables
+PEEDUCA
+Demographics-highest level of school completed
+
+With the following Ranges:
+-1  Not in Universe
+31  Less Than 1st Grade
+32  1st,2nd,3rd Or 4th Grade
+33  5th Or 6th Grade
+34  7th Or 8th Grade
+35  9th Grade
+36  10th Grade
+37  11th Grade
+38  12th Grade No Diploma
+39  High School Grad-Diploma Or Equiv (ged)
+40  Some College But No Degree
+41  Associate Degree-Occupational/Vocationl
+42  Associate Deg.-Academic Program
+43  Bachelor's Degree(ex:ba,ab,bs)
+44  MASTER'S DEGREE(EX:MA,MS,MEng,MEd,MSW)
+45  Professional School Deg(ex:md,dds,dvm)
+46  DOCTORATE DEGREE(EX:PhD,EdD)
+
+
+
+Topic: Demographic Variables
+PEMARITL
+Demographics-marital status
+
+With the following Ranges:
+-1  Not in Universe
+1  Married - Spouse Present
+2  Married-Spouse Absent
+3  Widowed
+4  Divorced
+5  Separated
+6  Never Married
+
+
+
+Topic: Demographic Variables
+PESEX
+Demographics-sex
+
+With the following Ranges:
+1  Male
+2  Female
+
+
+
+Topic: Demographic Variables
+PRTAGE
+Demographics - age topcoded at 85, 90 or 80 (see full description)
+
+With the following Ranges:
+0:90  Range
+
+
+
+Topic: Demographic Variables
+PRTFAGE
+Demographics-top coded flag for age
+
+With the following Ranges:
+0  No Top Code
+1  Top Coded Value For Age
+
+
+
+Topic: Demographic Variables
+PERACE
+Demographics-race of respondent
+
+With the following Ranges:
+1  White
+2  Black
+3  American Indian, Aleut, Eskimo
+4  Asian or Pacific Islander
+5  Other
+
+
+
+Topic: Geography Variables
+GTCMSA
+Geography-consolidated MSA code
+
+With the following Ranges:
+0  Not Identified or NonMetropolitan
+7  Boston-Worcester-Lawrence, MA-NH-ME-CT
+14  Chicago-Gary-Kenosha, IL-IN-WI
+21  Cincinnati-Hamilton, OH-KY-IN
+28  Cleveland-Akron, OH
+31  Dallas-Fort Worth, TX
+34  Denver-Boulder-Greeley, CO
+35  Detroit-Ann Arbor-Flint, MI
+42  Houston-Galveston-Brazoria, TX
+49  Los Angeles-Riverside-Orange County, CA
+56  Miami-Fort Lauderdale, FL
+63  Milwaukee-Racine, WI
+70  New York-Northern New Jersey-Long Island, NY-NJ-CT-PA
+77  Philadelphia-Wilmington-Atlantic City, PA-NJ-DE-MD
+79  Portland-Salem, OR-WA
+82  Sacramento-Yolo, CA
+84  San Francisco-Oakland-San Jose, CA
+91  Seattle-Tacoma-Bremerton, WA
+97  Washington-Baltimore, DC-MD-VA-WV
+
+
+
+Topic: Geography Variables
+GESTCEN
+Geography-census state code
+
+With the following Ranges:
+11  ME
+12  NH
+13  VT
+14  MA
+15  RI
+16  CT
+21  NY
+22  NJ
+23  PA
+31  OH
+32  IN
+33  IL
+34  MI
+35  WI
+41  MN
+42  IA
+43  MO
+44  ND
+45  SD
+46  NE
+47  KS
+51  DE
+52  MD
+53  DC
+54  VA
+55  WV
+56  NC
+57  SC
+58  GA
+59  FL
+61  KY
+62  TN
+63  AL
+64  MS
+71  AR
+72  LA
+73  OK
+74  TX
+81  MT
+82  ID
+83  WY
+84  CO
+85  NM
+86  AZ
+87  UT
+88  NV
+91  WA
+92  OR
+93  CA
+94  AK
+95  HI
+
+
+
+Topic: Earnings Variables
+PTERNWA
+Earnings-weekly earnings,amount-recode
+
+With the following Ranges:
+-1  In Universe, Met No Conditions To Assign
+0.0:2884.61  Range
+
+
+
+Topic: Voting and Registration Supplement Variables
+PRVEL
+Vote-voting eligibility recode
+
+With the following Ranges:
+1  Eligible for voting and registration questions
+2  In universe, but no data available
+3  Not eligible for voting and registration questions
+
+
+
+Topic: Voting and Registration Supplement Variables
+PES3
+Vote-vote in the November _ election?
+
+With the following Ranges:
+-9  No response (N/A)
+-3  Refused
+-2  Don't Know
+-1  Not in Universe
+1  Yes
+2  No
+
+
+
+Topic: Voting and Registration Supplement Variables
+PES4
+Vote-registered to vote in the November _ election?
+
+With the following Ranges:
+-9  No response (N/A)
+-3  Refused
+-2  Don't Know
+-1  Not in Universe
+1  Yes
+2  No
+
+
+
+Topic: Voting and Registration Supplement Variables
+PES5
+Vote-time of day voted?
+
+With the following Ranges:
+-9  No response (N/A)
+-3  Refused
+-2  Don't Know
+-1  Not in Universe
+1  Before noon
+2  Noon to 4 p.m.
+3  4 p.m. to 6 p.m.
+4  After 6 p.m.
+5  Voted absentee
+
+
+
+Topic: Voting and Registration Supplement Variables
+PES6
+Vote-time at current address
+
+With the following Ranges:
+-9  No response (N/A)
+-3  Refused
+-2  Don't Know
+-1  Not in Universe
+1  Less than 1 month
+2  1-6 months
+3  7-11 months
+4  1-2 years
+5  3-4 years
+6  5 years or longer
+
+
+
+Topic: Voting and Registration Supplement Variables
+PES7
+Vote-self or other reported for person
+
+With the following Ranges:
+-9  No response (N/A)
+1  Self
+2  Other
+
+
+
+Topic: Weighting Variables
+PWSSWGT
+Weight-second stage weight (rake 6 final step weight)
+
+
+
+
+Topic: Weighting Variables
+PWORWGT
+Weight-outgoing rotation weight
+
+
+DATE		METRIC A
+2016-01-01	100
+2016-01-02	200
