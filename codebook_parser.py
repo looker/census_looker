@@ -13,20 +13,39 @@ parser = argparse.ArgumentParser(description='This script parses codebooks '
 parser.add_argument('-f', '--file', help='Codebook Location', required=True)
 args = parser.parse_args()
 
+# The codebook is composed of definitions for all downloaded variables.
+# Each line can be parsed independently to figure out what part of a definition
+# it makes up.
+
 codebook = open(args.file)
 
+# These define the regular expressions needed to identify the different
+# definition parts.
+
+# The dataset name is prefaced by Dataset:
 dataset_re = re.compile(r'^Dataset: .*')
+# The topic name is prefaced by Topic:
 topic_re = re.compile(r'^Topic: [A-z ]*')
+# Question names are composed of up to 8 capital letters and/or digits
 q_name_re = re.compile(r'^[A-Z\d]{1,8}$')
+# Question descriptions have the topic name, then a dash, and the q description
 q_description_re = re.compile(
     r'^[A-Z]{1}[a-z]*?[\s\.]?&?[A-Z]?[a-z]*\.?-[\w\d\W]*$')
+
+# Some questions' valid values are defined as a set of key/value pairs while
+# others are composed of ranges of valid values
+
+# For key/value pairs, format is a number, then two spaces and then the name
 key_val_re = re.compile(r'^-?[0-9]* {2}[A-z 0-9\W]*$')
+# For value ranges, the range is shown as min:max, then the name of the range
 val_range_re = re.compile(r'^-?[0-9.]+:-?[0-9.]+  (?:Hours|Range)$')
+# We also need to be able to pass whitespace and known section titles
 whitespace_re = re.compile(r'^\s*$')
 range_title_re = re.compile(
     r'With the following Ranges:|Is a recode of the variable')
 
-
+# These regular expressions are the same as above, but with a capturing
+# group
 dataset_cap_re = re.compile(r'^Dataset: (.*)')
 topic_cap_re = re.compile(r'^Topic: ([A-z ]*)')
 q_name_cap_re = re.compile(r'(^[A-Z\d]{1,8})$')
@@ -41,9 +60,16 @@ val_range_cap_re = re.compile(
 def parseCodebook(cb):
     lines = cb.readlines()
 
+    # The order of the questions in the codebook isn't strictly necessary, but
+    # preserving the order lets value sorting work and makes it easier to
+    # compare input to output, so we'll use OrderedDict to preserve order
+
     parsed_cb = coll.OrderedDict()
     i = 0
 
+    # For each line, we'll work our way down the hierarchy (dataset -> topic ->
+    # question -> values) looking for regex matches and filling out the nested
+    # dictionary as we go
     for line in lines:
         i += 1
         if re.match(dataset_re, line):
@@ -70,8 +96,10 @@ def parseCodebook(cb):
         elif re.match(val_range_re, line):
             value_range = re.findall(val_range_cap_re, line)[0]
             parsed_cb[dataset][topic][q_name]["Range"] = value_range
+        # If a line is empty or has a section title, we ignore it.
         elif re.match(whitespace_re, line) or re.match(range_title_re, line):
             pass
+        # If we don't recognize a line, we print it for examination
         else:
             print "Unable to parse line " + str(i) + " - " + line
     return parsed_cb
@@ -80,19 +108,30 @@ def parseCodebook(cb):
 def writeLookML(nested_cb):
 
     for dat, top in nested_cb.iteritems():
+        # We name the output file after the dataset
         file_name = re.sub(r'[/\s\-]', '_', dat)
         lookml = open("{}.view.lookml".format(file_name), "w")
 
+        # First we write the view definitions
         lookml.write("- view: {}\n".format(file_name))
         lookml.write("  sql_table_name: [ENTER DATA FILE NAME HERE]\n\n\n")
+
         lookml.write("  fields:\n")
+
         for tops, que in top.iteritems():
             for ques, des in que.iteritems():
+                # We write definitions for fields differently depending
+                # on whether it has key/value pairs or a value range
                 if ('Keys' in des and 'Range' not in des):
+                    # Key/value pairs get written as string dimensions
+                    # We preserve the shortname of the question as the
+                    # dimension name for easy searchability
                     lookml.write("  - dimension: {}\n".format(ques.lower()))
                     lookml.write("    sql: ${{TABLE}}.{}\n".format(ques))
+                    # We use the question name as the label
                     lookml.write("    label: \"{}\"\n".format(
                         des["Description"].capitalize().rstrip()))
+                    # We use the topic as view_label for easy categorization
                     lookml.write("    view_label: '{}'\n".format(tops))
                     lookml.write("    type: string\n")
                     lookml.write("    sql_case:\n")
@@ -103,6 +142,8 @@ def writeLookML(nested_cb):
                         lookml.write("        ${{TABLE}}.{0} = {1}\n".format(
                             ques.lower().rstrip(), key))
                     lookml.write("\n\n")
+                # For value ranges, we split the range into 5 tiers
+                # evenly spaced between the min and max
                 elif ('Range' in des):
                     ends = des["Range"].split(':')
                     tiers = []
