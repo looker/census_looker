@@ -30,7 +30,7 @@ topic_re = re.compile(r'^Topic: [A-z ]*')
 q_name_re = re.compile(r'^[A-Z\d]{1,8}$')
 # Question descriptions have the topic name, then a dash, and the q description
 q_description_re = re.compile(
-    r'^[A-Z]{1}[a-z]*?[\s\.]?&?[A-Z]?[a-z]*\.?-[\w\d\W]*$')
+    r'[\w\s\W]*-(?!\s)[\w\d\W\s]*$')
 
 # Some questions' valid values are defined as a set of key/value pairs while
 # others are composed of ranges of valid values
@@ -41,8 +41,6 @@ key_val_re = re.compile(r'^-?[0-9]* {2}[A-z 0-9\W]*$')
 val_range_re = re.compile(r'^-?[0-9.]+:-?[0-9.]+  (?:Hours|Range)$')
 # We also need to be able to pass whitespace and known section titles
 whitespace_re = re.compile(r'^\s*$')
-range_title_re = re.compile(
-    r'With the following Ranges:|Is a recode of the variable')
 
 # These regular expressions are the same as above, but with a capturing
 # group
@@ -50,11 +48,19 @@ dataset_cap_re = re.compile(r'^Dataset: (.*)')
 topic_cap_re = re.compile(r'^Topic: ([A-z ]*)')
 q_name_cap_re = re.compile(r'(^[A-Z\d]{1,8})$')
 q_description_cap_re = re.compile(
-    r'^[A-Z]{1}[a-z]*?[\s\.]?&?[A-Z]?[a-z]*\.?-([\w\d\W]*$)')
+    r'-(?!\s)([\w\d\W\s]*$)')
 key_cap_re = re.compile(r'(^-?[0-9]*)')
 value_cap_re = re.compile(r'^-?[0-9]* {2}([A-z 0-9\W]*$)')
 val_range_cap_re = re.compile(
     r'(^-?[0-9.]+:-?[0-9.]+)  (?:Hours|Range)$')
+
+weird_lines = ("Demographics - age topcoded at 85, 90 or 80 (see full description)",
+               "Educational Attainment (recode - 4 categories)",
+               "Educational Attainment (recode - 5 categories)")
+
+ignorable = ("DataFerrett Codebook - Created", "With the following Ranges:",
+             "Is a recode of the variable(s) PEMLR",
+             "Is a recode of the variable(s) PEEDUCA")
 
 
 def parseCodebook(cb):
@@ -84,9 +90,6 @@ def parseCodebook(cb):
             q_name = re.findall(q_name_cap_re, line)[0]
             if q_name not in parsed_cb[dataset][topic]:
                 parsed_cb[dataset][topic][q_name] = coll.OrderedDict()
-        elif re.match(q_description_re, line):
-            q_description = re.findall(q_description_cap_re, line)[0]
-            parsed_cb[dataset][topic][q_name]["Description"] = q_description
         elif re.match(key_val_re, line):
             if "Keys" not in parsed_cb[dataset][topic][q_name]:
                 parsed_cb[dataset][topic][q_name]["Keys"] = coll.OrderedDict()
@@ -96,16 +99,25 @@ def parseCodebook(cb):
         elif re.match(val_range_re, line):
             value_range = re.findall(val_range_cap_re, line)[0]
             parsed_cb[dataset][topic][q_name]["Range"] = value_range
+        # Since Q description requires relatively permissive regex, its elif
+        # is after the more restrictive fields
+        elif re.match(q_description_re, line):
+            q_description = re.findall(q_description_cap_re, line)[0]
+            parsed_cb[dataset][topic][q_name]["Description"] = q_description
         # If a line is empty or has a section title, we ignore it.
-        elif re.match(whitespace_re, line) or re.match(range_title_re, line):
+        elif re.match(whitespace_re, line) or line.rstrip() in set(ignorable):
             pass
+        # Finally, check the line against our list of non-conforming lines
+        elif line.rstrip() in set(weird_lines):
+            q_description = line
+            parsed_cb[dataset][topic][q_name]["Description"] = q_description
         # If we don't recognize a line, we print it for examination
         else:
             print "Unable to parse line " + str(i) + " - " + line
     return parsed_cb
 
 
-def writeLookML(nested_cb):
+def writebaseLookMLview(nested_cb):
 
     for dat, top in nested_cb.iteritems():
         # We name the output file after the dataset
@@ -172,11 +184,14 @@ def writeLookML(nested_cb):
                                         ends[1], ques.lower()))
                     lookml.write("\n\n")
         lookml.close()
+        return "{}.view.lookml".format(file_name)
 
 
 def main():
+    print "Parsing codebook....."
     cb_dict = parseCodebook(codebook)
-    writeLookML(cb_dict)
-
+    print "Done parsing codebook"
+    lookml_name = writebaseLookMLview(cb_dict)
+    print "LookML Codebook written as {}".format(lookml_name)
 
 main()
