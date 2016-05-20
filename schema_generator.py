@@ -14,14 +14,13 @@ parser = argparse.ArgumentParser(description='This script samples a '
                                  'determine column types and then prints a '
                                  'schema appropriate for defining a table '
                                  'in BigQuery')
-parser.add_argument('-f', '--file', help='Codebook Location', required=True)
+parser.add_argument('-f', '--file', help='Datafile Location(s)', nargs='+')
+parser.add_argument('-t', '--table_name', help='Table Location(s)', nargs='+')
 args = parser.parse_args()
 
-# Since the order of the columns matters, we'll use an OrderedDict to store
-# the schema
 
-census_datafile = args.file
-schema = coll.OrderedDict()
+datafiles = args.file
+tables = args.table_name
 
 
 def get_types(datafile):
@@ -31,7 +30,9 @@ def get_types(datafile):
         # The names of the columns should be contained in the first row of
         # the data file
         header_row = next(reader)
-
+        # Since the order of the columns matters, we'll use an OrderedDict
+        # to store the schema
+        schema = coll.OrderedDict()
         # To begin, we'll set the type for all columns to integer and then
         # work through the data to correct that assumption where it's
         # incorrect
@@ -53,6 +54,8 @@ def get_types(datafile):
                     # We'll try to cast the value to a Python float
                     try:
                         val = float(sample_row[c])
+                        if not val.is_integer():
+                            schema[header_row[c]] = "FLOAT"
                     # If the casting fails, it's because there's a non-digit
                     # in the value and so we should designate that column as
                     # a string
@@ -62,15 +65,65 @@ def get_types(datafile):
                     # it's an int. If not, we change the type to float in the
                     # schema. If it is an integer, we leave the type as int
                     # in the schema.
-                    if not val.is_integer():
-                        schema[header_row[c]] = "FLOAT"
     return schema
 
 
+def write_table_schemas(ps, output, df, dfs):
+    # Once we've parsed the schema, we print it to the output file in the
+    # format required by BigQuery
+    output.write("For table {}:\n".format(tables[dfs.index(df)]))
+    output.write(", ".join([":".join([k, v]) for k, v in ps.items()]) + "\n")
+
+
+def produce_subselect(mfl, schema, tbl_name):
+    field_list = []
+    # When working with multiple files, we have field lists that need merging
+    # We'll create a subselect for each table that was passed in.
+    for field in mfl:
+        # If the field from the master field list is in the table, we just
+        # select it
+        if field in set(schema):
+            field_list.append(field)
+        # If the field from the master field list is not in the table, we
+        # pad that column with a NULL so that each subselect has the same
+        # width
+        else:
+            field_list.append("NULL AS {} ".format(field))
+    subselect = "(SELECT " + ", ".join([field for field in field_list])
+    subselect += ", " + "'" + tbl_name + "'" + " as src_table"
+    subselect += " FROM " + tbl_name + ")"
+
+    return subselect
+
+
 def main():
-    parsed_schema = get_types(census_datafile)
-    # Once we've parsed the schema, we print it to stdout in the format
-    # required by BigQuery
-    print ", ".join([":".join([k, v]) for k, v in parsed_schema.items()])
+    # Make sure there are the same number of files and table names
+    if not len(args.file) == len(args.table_name):
+        print "Mismatch between number of files and table names provided"
+        exit()
+
+    output_file = open("schema_output.txt", "w")
+    schemas, master_field_list, subselect_list = [], [], []
+
+    for file in datafiles:
+        parsed_schema = get_types(file)
+        schemas.append(parsed_schema)
+        for field in parsed_schema:
+            if field not in set(master_field_list):
+                master_field_list.append(field)
+        write_table_schemas(parsed_schema, output_file, file, datafiles)
+
+    if len(tables) > 1:
+        for schema in schemas:
+            ss = produce_subselect(master_field_list, schema,
+                                   tables[schemas.index(schema)])
+
+            subselect_list.append(ss)
+        output_file.write("\nFor creating final unioned table:\n")
+        output_file.write("SELECT * FROM " + ", \n".join([subsel
+                                                         for subsel in
+                                                         subselect_list]))
+    output_file.close()
+
 
 main()
