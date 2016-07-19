@@ -10,7 +10,7 @@ import re
 
 parser = argparse.ArgumentParser(description='This script parses codebooks '
                                  'downloaded from DataFerret into LookML')
-parser.add_argument('-f', '--file', help='Codebook Location(s)', nargs='+')
+parser.add_argument('-f', '--file_loc', help='Codebook Location(s)', nargs='+')
 parser.add_argument('-t', '--table', help='Table Name(s)', nargs='+')
 parser.add_argument('-o', '--output', help='Flag to merge output to one file')
 parser.add_argument('-m', '--measure', help='The name of the weighted measure',
@@ -21,7 +21,7 @@ args = parser.parse_args()
 # Each line can be parsed independently to figure out what part of a definition
 # it makes up.
 
-codebooks = args.file
+codebooks = args.file_loc
 tables = args.table
 measures = args.measure
 parsed_cbs = []

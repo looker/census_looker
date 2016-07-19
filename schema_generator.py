@@ -14,12 +14,12 @@ parser = argparse.ArgumentParser(description='This script samples a '
                                  'determine column types and then prints a '
                                  'schema appropriate for defining a table '
                                  'in BigQuery')
-parser.add_argument('-f', '--file', help='Datafile Location(s)', nargs='+')
+parser.add_argument('-f', '--file_loc', help='Datafile Location(s)', nargs='+')
 parser.add_argument('-t', '--table_name', help='Table Location(s)', nargs='+')
 args = parser.parse_args()
 
 
-datafiles = args.file
+datafiles = args.file_loc
 tables = args.table_name
 
 
@@ -41,7 +41,7 @@ def get_types(datafile):
 
         # We'll sample 100 random rows in the first 10,000 rows to check
         # whether the columns really are ints
-        sample_rows = random.sample(range(100), 100)
+        sample_rows = random.sample(range(100), 10)
 
         for r in sample_rows:
             # Skip forward in the file r rows
@@ -98,20 +98,20 @@ def produce_subselect(mfl, schema, tbl_name):
 
 def main():
     # Make sure there are the same number of files and table names
-    if not len(args.file) == len(args.table_name):
+    if not len(args.file_loc) == len(args.table_name):
         print "Mismatch between number of files and table names provided"
         exit()
 
     output_file = open("schema_output.txt", "w")
     schemas, master_field_list, subselect_list = [], [], []
 
-    for file in datafiles:
-        parsed_schema = get_types(file)
+    for df in datafiles:
+        parsed_schema = get_types(df)
         schemas.append(parsed_schema)
         for field in parsed_schema:
             if field not in set(master_field_list):
                 master_field_list.append(field)
-        write_table_schemas(parsed_schema, output_file, file, datafiles)
+        write_table_schemas(parsed_schema, output_file, df, datafiles)
 
     if len(tables) > 1:
         for schema in schemas:
