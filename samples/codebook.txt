@@ -18,7 +18,7 @@ With the following Ranges:
 38  12th Grade No Diploma
 39  High School Grad-Diploma Or Equiv (ged)
 40  Some College But No Degree
-41  Associate Degree-Occupational/Vocationl
+41  Associate Degree-Occupational/Vocation
 42  Associate Deg.-Academic Program
 43  Bachelor's Degree(ex:ba,ab,bs)
 44  MASTER'S DEGREE(EX:MA,MS,MEng,MEd,MSW)
